@@ -8,8 +8,9 @@ Description : Generates an application for a Poker tournament clock
 import sys
 from PyQt5.QtWidgets import QApplication, QDesktopWidget, QMainWindow, QPushButton, QLabel
 from PyQt5.QtGui import QFont, QColor, QPalette, QIcon
-from PyQt5.QtCore import QCoreApplication, Qt
+from PyQt5.QtCore import QCoreApplication, Qt, QEventLoop, QProcess
 import time
+import importlib
 import mainRoundsStorage as sets
 import math
 import os
@@ -34,7 +35,7 @@ class clockApplication(QMainWindow):                # Creates figure window obje
 
         self.valid = 0                  # Loop condition for clock
         self.remTime = 60               # Time remaining in current round
-        self.currentRound = 0           # Set current round
+        self.currentRound = -1           # Set current round
 
         self.guiColors = "border: 2px dashed red; background-color: #a6a6a6"
 
@@ -42,8 +43,7 @@ class clockApplication(QMainWindow):                # Creates figure window obje
         self.createLabels()             # Create time and round displays
         self.createPushButtons()        # Create the push buttons
         self.nextRound()                # Set displays to first round
-        delta = time.time()
-        print(delta-alpha)
+        print("Completed in {} secs".format(round(time.time()-alpha, 6)))
 
 
     #####  End main code  #####
@@ -115,7 +115,7 @@ class clockApplication(QMainWindow):                # Creates figure window obje
             self.nextRoundLabel.setText("FINAL ROUND")  # Change next round details
         else:
             self.nextRoundLabel.setText("NEXT: " + sets.rounds[self.currentRound + 1][1])  # Change next round details
-        if self.currentRound == 2:  # To enable backRound
+        if self.currentRound == 1:  # To enable backRound
             self.backRoundButton.setEnabled(True)
         self.playPauseButton.setText("⏵")
 
@@ -165,6 +165,11 @@ class clockApplication(QMainWindow):                # Creates figure window obje
         self.playPauseButton.setGeometry(clockDim[0]+round(clockDim[2]/2)-50, clockDim[1]+clockDim[3]+25, 100, 100)
         self.playPauseButton.clicked.connect(self.playPause)
         self.playPauseButton.setFont(QFont("Arial", 25))
+
+        self.settingsButton = QPushButton("⚙", self)           # Create playPauseButton
+        self.settingsButton.setGeometry(clockDim[0]+round(clockDim[2]/2)-500, clockDim[1]+clockDim[3]+70, 100, 100)
+        self.settingsButton.clicked.connect(self.openSettings)
+        self.settingsButton.setFont(QFont("Arial", 25))
 
     def createLabels(self):
 
@@ -221,7 +226,7 @@ class clockApplication(QMainWindow):                # Creates figure window obje
         self.currentRound = self.currentRound - 1   # Increase current round number
         self.changeRound()                          # Function to change round for gui
 
-        if self.currentRound == 1:                      # If in first round
+        if self.currentRound == 0:                      # If in first round
             self.backRoundButton.setEnabled(False)       # Disable backRound
 
         if self.currentRound == len(sets.rounds)-2:
@@ -263,6 +268,14 @@ class clockApplication(QMainWindow):                # Creates figure window obje
             self.valid = 0
             self.playPauseButton.setText("⏵")
 
+    def openSettings(self):
+        self.settingsMenu = changeSettings.settingsWindow()
+        self.settingsMenu.show()
+        while self.settingsMenu.isVisible():    # Wait for the settings window to be closed
+            QApplication.processEvents()
+        importlib.reload(sets)          # Refresh Settings
+
+        
     ##### End callback functions #####
 ### End Figure window code ###
 

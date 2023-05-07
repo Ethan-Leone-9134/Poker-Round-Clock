@@ -29,7 +29,7 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         ### Start Main Code ###
 
         # create push button
-        self.button = QPushButton("Click me!", self)        # Create push button object
+        self.button = QPushButton("Save and Return!", self)        # Create push button object
         self.button.setGeometry(100, 525, 200, 50)          # Set dimensions for pushbutton
         self.button.clicked.connect(self.closeShop)   # Sets callback
 
@@ -75,7 +75,7 @@ class settingsWindow(QMainWindow):                # Creates figure window object
             roundText += '"' + (currLine[1].text()) +'"'
             for i in range(len(currLine)-2):
                 i = i + 2
-                roundText += ', ' + str(int(currLine[i].isChecked()))
+                roundText += ',  ' + str(int(currLine[i].isChecked()))
             roundText += "], \n          "
         roundText += ']'
 
@@ -86,6 +86,8 @@ class settingsWindow(QMainWindow):                # Creates figure window object
             file.write('minPerRnd = ' + roundTime + '\n')
             file.write(roundText)
             file.close()
+
+        self.close()
 
 
 
@@ -175,23 +177,22 @@ class settingsWindow(QMainWindow):                # Creates figure window object
 
             ####### Create a chip trade-in calculator
 
-        for r in range(len(sets.rounds)-1):                         # For each line
-            r = r + 1                                                   # Ignore first line
+        for r in range(len(sets.rounds)):                         # For each line
             hBox = QHBoxLayout()                                        # Initialize line
             tempBut = self.roundDropDown(sets.rounds[r][0])                  # Round Type Box
-            self.roundBoxCollection.set(r-1, 0, tempBut)                     # Add to variable
+            self.roundBoxCollection.set(r, 0, tempBut)                     # Add to variable
             hBox.addWidget(tempBut)                                     # Add to line
 
             tempBut = QLineEdit(str(sets.rounds[r][1]), self)         # Round Value Box
             tempBut.setMaximumWidth(125)
             tempBut.setAlignment(Qt.AlignCenter)
-            self.roundBoxCollection.set(r-1, 1, tempBut)                     # Add to variable
+            self.roundBoxCollection.set(r, 1, tempBut)                     # Add to variable
             hBox.addWidget(tempBut)                                     # Add to line
 
             for c in range(len(sets.rounds[0])-2):                      # For each value of chips
                 tempBut = QCheckBox(str(sets.chips[1][c]), self)            # Create checkbox
                 tempBut.setChecked(sets.rounds[r][c + 2])                   # Set check value
-                self.roundBoxCollection.set(r-1, c + 2, tempBut)                     # Add to variable
+                self.roundBoxCollection.set(r, c + 2, tempBut)                     # Add to variable
                 hBox.addWidget(tempBut)                                     # Add to line
 
             vBox.addLayout(hBox)                                        # Add line to the rest
@@ -226,7 +227,6 @@ class settingsWindow(QMainWindow):                # Creates figure window object
 
 
 
-
 def getNumber(numText):
     numText.replace("B", "MK")
     numText.replace("b", "MK")
@@ -255,7 +255,6 @@ class collection(list):
             self[row].extend([None for _ in range(col - len(self[row]) + 1)])
         self[row][col] = value
     
-
 
 
 if __name__ == '__main__':          # If statement locks the following code to this script file
