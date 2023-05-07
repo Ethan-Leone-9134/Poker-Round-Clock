@@ -1,7 +1,12 @@
-# From ChatGPT
+"""
+Author      : Ethan Leone
+Date        : 05/06/2023
+Description : Generates an application for a Poker tournament clock settings window
+"""
 
 import sys
 import time
+import os
 
 from PyQt5.QtWidgets import QApplication, QDesktopWidget, QMainWindow, QPushButton, QLabel, QTextEdit, \
      QCheckBox, QVBoxLayout, QLineEdit, QHBoxLayout, QFrame, QScrollArea, QWidget, QComboBox
@@ -10,14 +15,16 @@ from PyQt5.QtCore import QCoreApplication, Qt
 import mainRoundsStorage as sets
 
 
-class MyWindow(QMainWindow):    # Creates figure window object
-    def __init__(self):         # Names the figure window as "self"
-        super().__init__()      # Gives figure window its properties
+class settingsWindow(QMainWindow):                # Creates figure window object
+    def __init__(self):                             # Names the figure window as "self"
+        super().__init__()                                  # Gives figure window its properties
         self.screen = QDesktopWidget().screenGeometry()             # Find screen dimensions
-        self.screen = [self.screen.width(), self.screen.height()]   # Window dimensions
-        self.setGeometry(0, 0, self.screen[0], self.screen[1])      # Set figure dimensions to screen size
+        self.winSize = [self.screen.width(), self.screen.height()]   # Window dimensions
+        self.setGeometry(0, 0, self.winSize[0], self.winSize[1])      # Set figure dimensions to screen size
         self.setWindowTitle("Poker Clock")                          # Create figure window name
-        self.setWindowIcon(QIcon(r"C:\Users\zaper\Downloads\pokerIcon.jpg"))
+        
+
+        self.setWindowIcon(QIcon(getPath("pokerIcon.jpg")))
 
         ### Start Main Code ###
 
@@ -36,9 +43,9 @@ class MyWindow(QMainWindow):    # Creates figure window object
         ### End Main Code ###
 
     def closeShop(self):      # Define button callback
-        with open('roundTest.py', 'r') as file:
+        with open(getPath('mainRoundsStorage.py'), 'r') as file:
+            # file.write()
             lines = file.readlines()
-        print(lines)
         file.close()
 
         # Get color names
@@ -46,33 +53,41 @@ class MyWindow(QMainWindow):    # Creates figure window object
         for box in self.colorBoxes:
             colors.append(box.toPlainText())
         colors = '", "'.join(colors)
-        # print(colors)
 
         # Get color values
         values = []
         for box in self.numBoxes:
-            values.append(box.toPlainText())
+            values.append('"' + box.toPlainText() + '"')
         values = ',   '.join(values)
-        # print(colors)
-        print('chips = [["'+colors+'"],')
-        print('         ['+values+']]')
 
         # Get color quantity
+        ################
 
         # Get time
-        print('minPerRnd = '+self.minBox.text())
+        roundTime = self.minBox.text()
+        
 
         # Get rounds
-        print('rounds = [')
-        with self.roundBoxCollection[3] as currLine:
-            print(1)
-            for i in range(5):
-                print(2)
-                print(currLine.text())
-                with currLine[0] as currBox:
-                    print(currBox.text())
+        roundText = 'rounds = ['
 
-        print()
+        for currLine in self.roundBoxCollection:
+            roundText += '["' + (currLine[0].currentText()) + '", '
+            roundText += '"' + (currLine[1].text()) +'"'
+            for i in range(len(currLine)-2):
+                i = i + 2
+                roundText += ', ' + str(int(currLine[i].isChecked()))
+            roundText += "], \n          "
+        roundText += ']'
+
+        with open(getPath('mainRoundsStorage.py'), 'w') as file:
+            file.write('chips = [["'+colors+'"],\n')
+            file.write('         ['+values+'],\n')
+            file.write('         [20,   20,    10,    5, 0, 0]]\n')
+            file.write('minPerRnd = ' + roundTime + '\n')
+            file.write(roundText)
+            file.close()
+
+
 
     def topBoxes(self):
         self.colorBoxes = []      # Boxes that contain chip colors
@@ -153,17 +168,9 @@ class MyWindow(QMainWindow):    # Creates figure window object
         main_layout.addWidget(frame)
         self.setLayout(main_layout)
 
-    def roundDropDown(self):
-        mainTypeDropDown = QComboBox()
-        mainTypeDropDown.addItem("Round")
-        mainTypeDropDown.addItem("Color-Up")
-        mainTypeDropDown.addItem("Unlock")
-        mainTypeDropDown.addItem("Break")
-        return mainTypeDropDown
-
 
     def roundBoxes(self):
-        self.roundBoxCollection = []                                # Initialize round data holder
+        self.roundBoxCollection = collection()                      # Initialize round data holder
         vBox = QVBoxLayout()                                        # Initialize line box layout
 
             ####### Create a chip trade in calculator
@@ -173,19 +180,19 @@ class MyWindow(QMainWindow):    # Creates figure window object
             hBox = QHBoxLayout()                                        # Initialize line
             tempBut = self.roundDropDown()                                  # Round Type Box
             tempBut.setCurrentIndex(0)
-            self.roundBoxCollection.append(tempBut)                     # Add to variable
+            self.roundBoxCollection.set(r-1, 0, tempBut)                     # Add to variable
             hBox.addWidget(tempBut)                                     # Add to line
 
             tempBut = QLineEdit(str(sets.rounds[r][1]), self)         # Round Value Box
             tempBut.setMaximumWidth(125)
             tempBut.setAlignment(Qt.AlignCenter)
-            self.roundBoxCollection.append(tempBut)                     # Add to variable
+            self.roundBoxCollection.set(r-1, 1, tempBut)                     # Add to variable
             hBox.addWidget(tempBut)                                     # Add to line
 
             for c in range(len(sets.rounds[0])-2):                      # For each value of chips
                 tempBut = QCheckBox(str(sets.chips[1][c]), self)            # Create checkbox
                 tempBut.setChecked(sets.rounds[r][c + 2])                   # Set check value
-                self.roundBoxCollection.append(tempBut)                     # Add to variable
+                self.roundBoxCollection.set(r-1, c + 2, tempBut)                     # Add to variable
                 hBox.addWidget(tempBut)                                     # Add to line
 
             vBox.addLayout(hBox)                                        # Add line to the rest
@@ -197,7 +204,18 @@ class MyWindow(QMainWindow):    # Creates figure window object
         scroll.setWidget(widget)
         scroll.setGeometry(800, 50, 1000, 900)
 
-    # def closeShop(self):
+
+    def roundDropDown(self):
+        mainTypeDropDown = QComboBox()
+        mainTypeDropDown.addItem("Round")
+        mainTypeDropDown.addItem("Color-Up")
+        mainTypeDropDown.addItem("Unlock")
+        mainTypeDropDown.addItem("Break")
+        return mainTypeDropDown
+
+
+
+
 
 def getNumber(numText):
     numText.replace("B", "MK")
@@ -211,13 +229,29 @@ def getNumber(numText):
     return result
 
 
+def getPath(fileName: str) -> str:
+    file_path = os.path.abspath(__file__)                       # Get the absolute path of the current file
+    dir_path = os.path.dirname(file_path)                       # Get the directory containing the current file
+    image_path = os.path.join(dir_path, fileName)        # Construct the full path to the image file using the current folder name
+    return image_path
+
+
+
+class collection(list):
+    def set(self, row, col, value):             # ChatGPT generated
+        if row >= len(self):
+            self.extend([[] for _ in range(row - len(self) + 1)])
+        if col >= len(self[row]):
+            self[row].extend([None for _ in range(col - len(self[row]) + 1)])
+        self[row][col] = value
+    
 
 
 
 if __name__ == '__main__':          # If statement locks the following code to this script file
     alpha = time.time()
     app = QApplication(sys.argv)    #
-    window = MyWindow()
+    window = settingsWindow()
     window.show()
     print("Completed in {} secs".format(round(time.time()-alpha, 4)))
     sys.exit(app.exec_())
