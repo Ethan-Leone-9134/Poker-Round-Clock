@@ -173,13 +173,12 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         self.roundBoxCollection = collection()                      # Initialize round data holder
         vBox = QVBoxLayout()                                        # Initialize line box layout
 
-            ####### Create a chip trade in calculator
+            ####### Create a chip trade-in calculator
 
         for r in range(len(sets.rounds)-1):                         # For each line
             r = r + 1                                                   # Ignore first line
             hBox = QHBoxLayout()                                        # Initialize line
-            tempBut = self.roundDropDown()                                  # Round Type Box
-            tempBut.setCurrentIndex(0)
+            tempBut = self.roundDropDown(sets.rounds[r][0])                  # Round Type Box
             self.roundBoxCollection.set(r-1, 0, tempBut)                     # Add to variable
             hBox.addWidget(tempBut)                                     # Add to line
 
@@ -205,13 +204,24 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         scroll.setGeometry(800, 50, 1000, 900)
 
 
-    def roundDropDown(self):
+    def roundDropDown(self, name):
         mainTypeDropDown = QComboBox()
         mainTypeDropDown.addItem("Round")
         mainTypeDropDown.addItem("Color-Up")
         mainTypeDropDown.addItem("Unlock")
         mainTypeDropDown.addItem("Break")
+        
+        if name == "Round":
+            mainTypeDropDown.setCurrentIndex(0)
+        elif name == "Color-Up":
+            mainTypeDropDown.setCurrentIndex(1)
+        elif name == "Unlock":
+            mainTypeDropDown.setCurrentIndex(2)
+        elif name == "Break":
+            mainTypeDropDown.setCurrentIndex(3)
+        
         return mainTypeDropDown
+
 
 
 
