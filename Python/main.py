@@ -16,7 +16,7 @@ class MyWindow(QMainWindow):    # Creates figure window object
         self.screen = [self.screen.width(), self.screen.height()]  # Window dimensions
         self.setGeometry(0, 0, self.screen[0], self.screen[1])     # Set figure dimensions to screen size
         self.setWindowTitle("Poker Clock")          # Create figure window name
-        self.setWindowIcon(QIcon(r"C:\Users\zaper\Downloads\pokerIcon.jpg"))
+        self.setWindowIcon(QIcon(r"pokerIcon.jpg"))
 
         ##### Start Main Code #####
 
