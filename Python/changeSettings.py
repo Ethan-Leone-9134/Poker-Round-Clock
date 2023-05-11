@@ -18,29 +18,16 @@ import mainRoundsStorage as sets
 class settingsWindow(QMainWindow):                # Creates figure window object
     def __init__(self):                             # Names the figure window as "self"
         super().__init__()                                  # Gives figure window its properties
-        self.screen = QDesktopWidget().screenGeometry()             # Find screen dimensions
-        self.winSize = [self.screen.width(), self.screen.height()]   # Window dimensions
-        self.setGeometry(0, 0, self.winSize[0], self.winSize[1])      # Set figure dimensions to screen size
-        self.setWindowTitle("Poker Clock")                          # Create figure window name
-        
+        self.screen = QDesktopWidget().screenGeometry()                 # Find screen dimensions
+        self.winSize = [self.screen.width(), self.screen.height()]      # Window dimensions
+        self.setGeometry(0, 0, self.winSize[0], self.winSize[1])        # Set figure dimensions to screen size
+        self.setWindowTitle("Poker Clock")                              # Create figure window name
+        self.setWindowIcon(QIcon(getPath("pokerIcon.jpg")))             # Set window icon
 
-        self.setWindowIcon(QIcon(getPath("pokerIcon.jpg")))
+        self.topBoxes()         # Generate the chip boxes
+        self.timeSaveBoxes()    # Generate the time ans save boxes
+        self.roundBoxes()       # Generate the rounds grid
 
-        ### Start Main Code ###
-
-        # create push button
-        self.button = QPushButton("Save and Return!", self)        # Create push button object
-        self.button.setGeometry(100, 525, 200, 50)          # Set dimensions for pushbutton
-        self.button.clicked.connect(self.closeShop)   # Sets callback
-
-
-
-        self.topBoxes()
-        self.timeBoxes()
-        self.roundBoxes()
-
-
-        ### End Main Code ###
 
     def closeShop(self):      # Define button callback
         with open(getPath('mainRoundsStorage.py'), 'r') as file:
@@ -61,12 +48,15 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         values = ',   '.join(values)
 
         # Get color quantity
-        ################
+        # Get color values
+        quantities = []
+        for box in self.quantityBoxes:
+            quantities.append('"' + box.toPlainText() + '"')
+        quantities = ',   '.join(quantities)
 
         # Get time
         roundTime = self.minBox.text()
         
-
         # Get rounds
         roundText = 'rounds = ['
 
@@ -82,7 +72,8 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         with open(getPath('mainRoundsStorage.py'), 'w') as file:
             file.write('chips = [["'+colors+'"],\n')
             file.write('         ['+values+'],\n')
-            file.write('         [20,   20,    10,    5, 0, 0]]\n')
+            file.write('         ['+quantities+']]\n')
+            # file.write('         [20,   20,    10,    5, 0, 0]]\n')
             file.write('minPerRnd = ' + roundTime + '\n')
             file.write(roundText)
             file.close()
@@ -90,10 +81,10 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         self.close()
 
 
-
     def topBoxes(self):
         self.colorBoxes = []      # Boxes that contain chip colors
         self.numBoxes = []        # Boxes that contain ship values
+        self.quantityBoxes = []   # Boxes that contain quantity values
         mainLay = QHBoxLayout()
 
         for i in range(len(sets.chips[0])):
@@ -101,35 +92,40 @@ class settingsWindow(QMainWindow):                # Creates figure window object
             frame = QFrame(self)                                # Generate Frame
             frame.setFrameShape(QFrame.Box)                     # Set Frame Shape
             frame.setLineWidth(2)                               # Set border width
-            # frame.setStyleSheet("background-color: "+sets.chips[0][i])        # Set background color
-            frame.setStyleSheet("background-color: red")        # Set background color
 
-            tempBut = QTextEdit(sets.chips[0][i], frame)        # Create color box
+            currColor = sets.chips[0][i]                        # Find the background color
+            fontColor = backCheck(currColor)                    # Find the font color
+            frame.setStyleSheet("background-color: "+currColor
+                                +"; color: "+fontColor)         # Set background color
+            
+            tempBut = QTextEdit(currColor, frame)               # Create color box
             tempBut.setAlignment(Qt.AlignCenter)                # Center align color
+            tempBut.setFont(QFont("Arial", 11))                 # Set font
             self.colorBoxes.append(tempBut)                     # Add box to collecting variable
             tempLayout.addWidget(tempBut)                       # Add box to layout/frame
 
             tempBut = QTextEdit(str(sets.chips[1][i]), frame)   # Create value box
             tempBut.setAlignment(Qt.AlignCenter)                # Center align values
+            tempBut.setFont(QFont("Arial", 11))                 # Set font
             self.numBoxes.append(tempBut)                       # Add box to collecting variable
             tempLayout.addWidget(tempBut)                       # Add box to layout/frame
 
             tempBut = QTextEdit(str(sets.chips[2][i]), frame)   # Create quantity box
             tempBut.setAlignment(Qt.AlignCenter)                # Center align values
-            # self.numBoxes.append(tempBut)                       # Add box to collecting variable
+            tempBut.setFont(QFont("Arial", 11))                 # Set font
+            self.quantityBoxes.append(tempBut)                  # Add box to collecting variable
             tempLayout.addWidget(tempBut)                       # Add box to layout/frame
 
             tempBut = QLabel(frame)                             # Create value box
-            chipSum = str(getNumber(sets.chips[1][i]) * sets.chips[2][i])  # Find value of total
+            chipSum = str(getNumber(sets.chips[1][i]) * getNumber(sets.chips[2][i]))  # Find value of total
             tempBut.setText(chipSum)                            # Set label to sum
             tempBut.setAlignment(Qt.AlignCenter)                # Center align values
-            # self.numBoxes.append(tempBut)                       # Add box to collecting variable
+            tempBut.setFont(QFont("Arial", 11))                 # Set font
             tempLayout.addWidget(tempBut)                       # Add box to layout/frame
 
             frame.setLayout(tempLayout)                         # Add layout to frame
             frame.setMaximumHeight(200)
             # frame.setMaximumWidth(100)
-            # frame.setGeometry(i*125+25, 25, 100, 200)           # Add dimensions to frame
             mainLay.addWidget(frame)
 
         scroll = QScrollArea(self)                      # Create scroll area
@@ -138,10 +134,9 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         widget.setLayout(mainLay)
         scroll.setWidget(widget)
         scroll.setGeometry(100, 50, 650, 260)
-        # self.setLayout(mainLay)
 
 
-    def timeBoxes(self):
+    def timeSaveBoxes(self):
 
         frame = QFrame(self)                                # Generate Frame
         frame.setFrameShape(QFrame.Box)                     # Set Frame Shape
@@ -169,6 +164,10 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         main_layout = QHBoxLayout()
         main_layout.addWidget(frame)
         self.setLayout(main_layout)
+
+        self.saveButton = QPushButton("Save and Return!", self)     # Create save button object
+        self.saveButton.setGeometry(150, 525, 200, 50)              # Set dimensions for pushbutton
+        self.saveButton.clicked.connect(self.closeShop)             # Sets callback
 
 
     def roundBoxes(self):
@@ -225,9 +224,17 @@ class settingsWindow(QMainWindow):                # Creates figure window object
 
 
 
+def backCheck(backColor: str) -> str:
+    color = QColor(backColor)
+    triple = ((color.red(), color.green(), color.blue()))
+    if ((triple[0]*0.299 + triple[1]*0.587 + triple[1]*0.114) > 186): # Code taken from https://stackoverflow.com/questions/3942878/how-to-decide-font-color-in-white-or-black-depending-on-background-color
+        fontColor = "black"
+    else:
+        fontColor = "white"
+    return fontColor
+    
 
-
-def getNumber(numText):
+def getNumber(numText: str) -> float: 
     numText.replace("B", "MK")
     numText.replace("b", "MK")
     numText.replace("M", "KK")
@@ -246,7 +253,6 @@ def getPath(fileName: str) -> str:
     return image_path
 
 
-
 class collection(list):
     def set(self, row, col, value):             # ChatGPT generated
         if row >= len(self):
@@ -259,7 +265,7 @@ class collection(list):
 
 if __name__ == '__main__':          # If statement locks the following code to this script file
     alpha = time.time()
-    app = QApplication(sys.argv)    #
+    app = QApplication(sys.argv)
     window = settingsWindow()
     window.show()
     print("Completed in {} secs".format(round(time.time()-alpha, 4)))

@@ -35,9 +35,9 @@ class clockApplication(QMainWindow):                # Creates figure window obje
 
         self.valid = 0                  # Loop condition for clock
         self.remTime = 60               # Time remaining in current round
-        self.currentRound = -1           # Set current round
+        self.currentRound = -1          # Set current round
 
-        self.guiColors = "border: 2px dashed red; background-color: #a6a6a6"
+        self.guiColors = "border: 2px dashed red; background-color: #d6d6d6"
 
         alpha = time.time()
         self.createLabels()             # Create time and round displays
@@ -275,7 +275,7 @@ class clockApplication(QMainWindow):                # Creates figure window obje
             QApplication.processEvents()
         importlib.reload(sets)          # Refresh Settings
 
-        
+
     ##### End callback functions #####
 ### End Figure window code ###
 
