@@ -281,7 +281,7 @@ class clockApplication(QMainWindow):                # Creates figure window obje
 
 
 if __name__ == '__main__':          # If statement locks the foloowing code to this script file, rather than being called somewhere else
-    app = QApplication(sys.argv)    #
+    app = QApplication(sys.argv)    
     window = clockApplication()
     window.show()
     sys.exit(app.exec_())
