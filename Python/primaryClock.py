@@ -11,9 +11,9 @@ from PyQt5.QtGui import QFont, QColor, QPalette, QIcon
 from PyQt5.QtCore import QCoreApplication, Qt, QEventLoop, QProcess
 import time
 import importlib
-import mainRoundsStorage as sets
 import math
 import os
+from openCurrent import currentMod as sets
 import changeSettings
 
 
@@ -35,15 +35,15 @@ class clockApplication(QMainWindow):                # Creates figure window obje
 
         self.valid = 0                  # Loop condition for clock
         self.remTime = 60               # Time remaining in current round
-        self.currentRound = -1           # Set current round
+        self.currentRound = -1          # Set current round
 
-        self.guiColors = "border: 2px dashed red; background-color: #a6a6a6"
+        self.guiColors = "border: 2px dashed red; background-color: #d6d6d6"
 
         alpha = time.time()
         self.createLabels()             # Create time and round displays
         self.createPushButtons()        # Create the push buttons
         self.nextRound()                # Set displays to first round
-        print("Completed in {} secs".format(round(time.time()-alpha, 6)))
+        # print("Completed in {} secs".format(round(time.time()-alpha, 6)))
 
 
     #####  End main code  #####
@@ -162,7 +162,7 @@ class clockApplication(QMainWindow):                # Creates figure window obje
         self.nextMinButton.setFont(buttonFont)
 
         self.playPauseButton = QPushButton("⏵", self)           # Create playPauseButton
-        self.playPauseButton.setGeometry(clockDim[0]+round(clockDim[2]/2)-50, clockDim[1]+clockDim[3]+25, 100, 100)
+        self.playPauseButton.setGeometry(clockDim[0]+round(clockDim[2]/2)-50, clockDim[1]+clockDim[3]+35, 100, 100)
         self.playPauseButton.clicked.connect(self.playPause)
         self.playPauseButton.setFont(QFont("Arial", 25))
 
@@ -170,6 +170,11 @@ class clockApplication(QMainWindow):                # Creates figure window obje
         self.settingsButton.setGeometry(clockDim[0]+round(clockDim[2]/2)-500, clockDim[1]+clockDim[3]+70, 100, 100)
         self.settingsButton.clicked.connect(self.openSettings)
         self.settingsButton.setFont(QFont("Arial", 25))
+
+        self.timeChipButton = QPushButton("⌛", self)           # Create playPauseButton
+        self.timeChipButton.setGeometry(clockDim[0]+round(clockDim[2]/2)+400, clockDim[1]+clockDim[3]+70, 100, 100)
+        self.timeChipButton.clicked.connect(self.openSettings)
+        self.timeChipButton.setFont(QFont("Arial", 25))
 
     def createLabels(self):
 
@@ -275,13 +280,13 @@ class clockApplication(QMainWindow):                # Creates figure window obje
             QApplication.processEvents()
         importlib.reload(sets)          # Refresh Settings
 
-        
+
     ##### End callback functions #####
 ### End Figure window code ###
 
 
 if __name__ == '__main__':          # If statement locks the foloowing code to this script file, rather than being called somewhere else
-    app = QApplication(sys.argv)    #
+    app = QApplication(sys.argv)    
     window = clockApplication()
     window.show()
     sys.exit(app.exec_())

@@ -12,38 +12,26 @@ from PyQt5.QtWidgets import QApplication, QDesktopWidget, QMainWindow, QPushButt
      QCheckBox, QVBoxLayout, QLineEdit, QHBoxLayout, QFrame, QScrollArea, QWidget, QComboBox
 from PyQt5.QtGui import QFont, QColor, QPalette, QIcon
 from PyQt5.QtCore import QCoreApplication, Qt
-import mainRoundsStorage as sets
+from openCurrent import currentMod as sets
+from openCurrent import currentSave
 
 
-class settingsWindow(QMainWindow):                # Creates figure window object
+class settingsWindow(QMainWindow):            # Creates figure window object
     def __init__(self):                             # Names the figure window as "self"
         super().__init__()                                  # Gives figure window its properties
-        self.screen = QDesktopWidget().screenGeometry()             # Find screen dimensions
-        self.winSize = [self.screen.width(), self.screen.height()]   # Window dimensions
-        self.setGeometry(0, 0, self.winSize[0], self.winSize[1])      # Set figure dimensions to screen size
-        self.setWindowTitle("Poker Clock")                          # Create figure window name
-        
+        self.screen = QDesktopWidget().screenGeometry()                 # Find screen dimensions
+        self.winSize = [self.screen.width(), self.screen.height()]      # Window dimensions
+        self.setGeometry(0, 0, self.winSize[0], self.winSize[1])        # Set figure dimensions to screen size
+        self.setWindowTitle("Poker Clock")                              # Create figure window name
+        self.setWindowIcon(QIcon(getPath("pokerIcon.jpg")))             # Set window icon
 
-        self.setWindowIcon(QIcon(getPath("pokerIcon.jpg")))
+        self.topBoxes()         # Generate the chip boxes
+        self.timeSaveBoxes()    # Generate the time and save boxes
+        self.roundBoxes()       # Generate the rounds grid
 
-        ### Start Main Code ###
-
-        # create push button
-        self.button = QPushButton("Save and Return!", self)        # Create push button object
-        self.button.setGeometry(100, 525, 200, 50)          # Set dimensions for pushbutton
-        self.button.clicked.connect(self.closeShop)   # Sets callback
-
-
-
-        self.topBoxes()
-        self.timeBoxes()
-        self.roundBoxes()
-
-
-        ### End Main Code ###
 
     def closeShop(self):      # Define button callback
-        with open(getPath('mainRoundsStorage.py'), 'r') as file:
+        with open(getPath(f'roundFiles\{currentSave}.py'), 'r') as file:
             # file.write()
             lines = file.readlines()
         file.close()
@@ -61,12 +49,15 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         values = ',   '.join(values)
 
         # Get color quantity
-        ################
+        # Get color values
+        quantities = []
+        for box in self.quantityBoxes:
+            quantities.append('"' + box.toPlainText() + '"')
+        quantities = ',   '.join(quantities)
 
         # Get time
         roundTime = self.minBox.text()
         
-
         # Get rounds
         roundText = 'rounds = ['
 
@@ -79,10 +70,11 @@ class settingsWindow(QMainWindow):                # Creates figure window object
             roundText += "], \n          "
         roundText += ']'
 
-        with open(getPath('mainRoundsStorage.py'), 'w') as file:
+        with open(getPath(f'roundFiles\{currentSave}.py'), 'w') as file:
             file.write('chips = [["'+colors+'"],\n')
             file.write('         ['+values+'],\n')
-            file.write('         [20,   20,    10,    5, 0, 0]]\n')
+            file.write('         ['+quantities+']]\n')
+            # file.write('         [20,   20,    10,    5, 0, 0]]\n')
             file.write('minPerRnd = ' + roundTime + '\n')
             file.write(roundText)
             file.close()
@@ -90,10 +82,12 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         self.close()
 
 
-
     def topBoxes(self):
+        # Function generates the chip value display
+
         self.colorBoxes = []      # Boxes that contain chip colors
         self.numBoxes = []        # Boxes that contain ship values
+        self.quantityBoxes = []   # Boxes that contain quantity values
         mainLay = QHBoxLayout()
 
         for i in range(len(sets.chips[0])):
@@ -101,35 +95,40 @@ class settingsWindow(QMainWindow):                # Creates figure window object
             frame = QFrame(self)                                # Generate Frame
             frame.setFrameShape(QFrame.Box)                     # Set Frame Shape
             frame.setLineWidth(2)                               # Set border width
-            # frame.setStyleSheet("background-color: "+sets.chips[0][i])        # Set background color
-            frame.setStyleSheet("background-color: red")        # Set background color
 
-            tempBut = QTextEdit(sets.chips[0][i], frame)        # Create color box
+            currColor = sets.chips[0][i]                        # Find the background color
+            fontColor = backCheck(currColor)                    # Find the font color
+            frame.setStyleSheet("background-color: "+currColor
+                                +"; color: "+fontColor)         # Set background color
+            
+            tempBut = QTextEdit(currColor, frame)               # Create color box
             tempBut.setAlignment(Qt.AlignCenter)                # Center align color
+            tempBut.setFont(QFont("Arial", 11))                 # Set font
             self.colorBoxes.append(tempBut)                     # Add box to collecting variable
             tempLayout.addWidget(tempBut)                       # Add box to layout/frame
 
             tempBut = QTextEdit(str(sets.chips[1][i]), frame)   # Create value box
             tempBut.setAlignment(Qt.AlignCenter)                # Center align values
+            tempBut.setFont(QFont("Arial", 11))                 # Set font
             self.numBoxes.append(tempBut)                       # Add box to collecting variable
             tempLayout.addWidget(tempBut)                       # Add box to layout/frame
 
             tempBut = QTextEdit(str(sets.chips[2][i]), frame)   # Create quantity box
             tempBut.setAlignment(Qt.AlignCenter)                # Center align values
-            # self.numBoxes.append(tempBut)                       # Add box to collecting variable
+            tempBut.setFont(QFont("Arial", 11))                 # Set font
+            self.quantityBoxes.append(tempBut)                  # Add box to collecting variable
             tempLayout.addWidget(tempBut)                       # Add box to layout/frame
 
             tempBut = QLabel(frame)                             # Create value box
-            chipSum = str(getNumber(sets.chips[1][i]) * sets.chips[2][i])  # Find value of total
+            chipSum = str(getNumber(sets.chips[1][i]) * getNumber(sets.chips[2][i]))  # Find value of total
             tempBut.setText(chipSum)                            # Set label to sum
             tempBut.setAlignment(Qt.AlignCenter)                # Center align values
-            # self.numBoxes.append(tempBut)                       # Add box to collecting variable
+            tempBut.setFont(QFont("Arial", 11))                 # Set font
             tempLayout.addWidget(tempBut)                       # Add box to layout/frame
 
             frame.setLayout(tempLayout)                         # Add layout to frame
             frame.setMaximumHeight(200)
             # frame.setMaximumWidth(100)
-            # frame.setGeometry(i*125+25, 25, 100, 200)           # Add dimensions to frame
             mainLay.addWidget(frame)
 
         scroll = QScrollArea(self)                      # Create scroll area
@@ -138,10 +137,10 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         widget.setLayout(mainLay)
         scroll.setWidget(widget)
         scroll.setGeometry(100, 50, 650, 260)
-        # self.setLayout(mainLay)
 
 
-    def timeBoxes(self):
+    def timeSaveBoxes(self):
+        # Generate the time and save boxes
 
         frame = QFrame(self)                                # Generate Frame
         frame.setFrameShape(QFrame.Box)                     # Set Frame Shape
@@ -170,8 +169,25 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         main_layout.addWidget(frame)
         self.setLayout(main_layout)
 
+        # frame = QFrame(self)                    # Create a QFrame and set its layout
+        # self.lay = QVBoxLayout()
+        # saveLabel = QLabel("Save Version")
+        # self.saveFile = self.roundDropDown("Save 1", ["Save 1", "Save 2", "Save 3"])
+        # self.saveFile.setFont(QFont("Arial", 13))
+        # self.lay.addWidget(self.saveFile)       # Add the dropdown to the layout
+
+        # frame.setLayout(self.lay)        
+        # frame.setGeometry(500, 400, 200, 75)    # Set the geometry for the QFrame
+
+        self.saveButton = QPushButton("Save and Return!", self)     # Create save button object
+        self.saveButton.setGeometry(200, 700, 300, 75)              # Set dimensions for pushbutton
+        self.saveButton.setFont(QFont("Arial", 15))
+        self.saveButton.clicked.connect(self.closeShop)             # Sets callback
+
 
     def roundBoxes(self):
+        # Generate the main boxes containing round type, name, active chips
+
         self.roundBoxCollection = collection()                      # Initialize round data holder
         vBox = QVBoxLayout()                                        # Initialize line box layout
 
@@ -179,7 +195,7 @@ class settingsWindow(QMainWindow):                # Creates figure window object
 
         for r in range(len(sets.rounds)):                         # For each line
             hBox = QHBoxLayout()                                        # Initialize line
-            tempBut = self.roundDropDown(sets.rounds[r][0])                  # Round Type Box
+            tempBut = self.roundDropDown(sets.rounds[r][0],["Round","Color-Up","Unlock","Break"])                  # Round Type Box
             self.roundBoxCollection.set(r, 0, tempBut)                     # Add to variable
             hBox.addWidget(tempBut)                                     # Add to line
 
@@ -205,37 +221,58 @@ class settingsWindow(QMainWindow):                # Creates figure window object
         scroll.setGeometry(800, 50, 1000, 900)
 
 
-    def roundDropDown(self, name):
+    def roundDropDown(self, name, list):
+        # Create the dropdown box for each round's type
         mainTypeDropDown = QComboBox()
-        mainTypeDropDown.addItem("Round")
-        mainTypeDropDown.addItem("Color-Up")
-        mainTypeDropDown.addItem("Unlock")
-        mainTypeDropDown.addItem("Break")
-        
-        if name == "Round":
-            mainTypeDropDown.setCurrentIndex(0)
-        elif name == "Color-Up":
-            mainTypeDropDown.setCurrentIndex(1)
-        elif name == "Unlock":
-            mainTypeDropDown.setCurrentIndex(2)
-        elif name == "Break":
-            mainTypeDropDown.setCurrentIndex(3)
+
+        for i, val in enumerate(list):
+            mainTypeDropDown.addItem(val)
+
+        for i, val in enumerate(list):
+            if val == name:
+                mainTypeDropDown.setCurrentIndex(i)
         
         return mainTypeDropDown
 
 
+def backCheck(backColor: str) -> str:
+    """
+    Function backCheck
+    Inputs:
+        backColor (str)     : Background Color for the object
+    Outputs:
+        fontColor (str)     : Font Color for the object relative to the background
+    """
 
+    color = QColor(backColor)
+    triple = ((color.red(), color.green(), color.blue()))       # Get a list of values
+    if ((triple[0]*0.299 + triple[1]*0.587 + triple[1]*0.114) > 186): # Code taken from https://stackoverflow.com/questions/3942878/how-to-decide-font-color-in-white-or-black-depending-on-background-color
+        fontColor = "black"
+    else:
+        fontColor = "white"
+    return fontColor
+    
 
+def getNumber(numText: str) -> float: 
+    """
+    Function getNumber
+    Inputs:
+        numText (str)    : Symbolic Number (i.e. 5K)
+    Outputs:
+        result (int)     : Integer Number
+    """
 
-def getNumber(numText):
+    numText = numText.upper()
+    numText.replace("T", "BK")
     numText.replace("B", "MK")
-    numText.replace("b", "MK")
+    # numText.replace("b", "MK")
     numText.replace("M", "KK")
-    numText.replace("m", "KK")
-    numText.replace("k", "K")
-    numComma = numText.count("K")
-    sigNum = int(numText.replace("K", ""))
-    result = sigNum * 1000 ** numComma
+    # numText.replace("m", "KK")
+    # numText.replace("k", "K")
+
+    numComma = numText.count("K")               # Count all Ks in string
+    sigNum = int(numText.replace("K", ""))      # Remove the Ks and make number
+    result = sigNum * 1000 ** numComma          # Add the Ks to the number
     return result
 
 
@@ -244,7 +281,6 @@ def getPath(fileName: str) -> str:
     dir_path = os.path.dirname(file_path)                       # Get the directory containing the current file
     image_path = os.path.join(dir_path, fileName)        # Construct the full path to the image file using the current folder name
     return image_path
-
 
 
 class collection(list):
@@ -256,10 +292,9 @@ class collection(list):
         self[row][col] = value
     
 
-
 if __name__ == '__main__':          # If statement locks the following code to this script file
     alpha = time.time()
-    app = QApplication(sys.argv)    #
+    app = QApplication(sys.argv)
     window = settingsWindow()
     window.show()
     print("Completed in {} secs".format(round(time.time()-alpha, 4)))
